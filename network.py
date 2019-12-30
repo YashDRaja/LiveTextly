@@ -8,12 +8,26 @@ class Network:
         self.server = "192.168.1.22"
         self.port = 5555
         self.addr= (self.server, self.port)
-        self.p = self.connect()
+        #self.p = self.connect()
+        self.connected = False
     def getP(self):
         return self.p
+    def idConfig(self):
+        try:
+            if self.connected == False:
+                self.client.connect(self.addr)
+                self.connected = True
+            return pickle.loads(self.client.recv(2048))
+        except:
+            pass
+    def idConf(self,data):
+        self.client.send(str.encode(str(data)))
+        self.p = self.connect()
     def connect(self):
         try:
-            self.client.connect(self.addr)
+            if self.connected == False:
+                self.client.connect(self.addr)
+                self.connected = True
             return pickle.loads(self.client.recv(2048))
         except:
             pass
