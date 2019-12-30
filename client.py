@@ -1,235 +1,196 @@
-import pygame
 from network import Network
 from user import User
 import pickle
-pygame.init()
-width = 500
-height = 500
-win = pygame.display.set_mode((width,height))
-pygame.display.set_caption("Client")
-def writeMessage(string,prev):
-    #print(string)
-    # name change
-    #   font = pygame.font.SysFont("comicsans",40)
-    #  name = font.render(string, True, (0,0,0))
-    # win.blit(name, (50, 400))
-    pressed = pygame.key.get_pressed()
-    if pressed[pygame.K_BACKSPACE]:
-        if len(string) != 0:
-            string = string[:-1]
-    if len(string) < 200:
+import multiprocessing
+from tkinter import *
+from scrollable import Scrollable
+def send(queue1,queue2,textBox,sendButton):
+    queue2.put((textBox.get(),0))
+    textBox.delete(0,END)
+def texts(queue1,queue2, scr,win):
+    l = []
+    while not queue1.empty():
+        string = queue1.get()
+        #print(string, "here")
+        if string[1] == 1:
+            if string[0] != "":
+                label = Label(scr, text=string[0], justify=LEFT)
+                label.pack()
+        elif string[1] != None:
+            l.append(string)
+    if queue1.empty():
+        queue1.put((None,None))
+    while len(l) > 0:
+        queue2.put(l[0])
+        del l[0]
+    scr.update()
+    win.after(10, lambda: texts(queue1,queue2, scr,win))
+def onClosing(q3,win1):
+    q3.put("queue")
+    win1.destroy()
+def changeId(e1,q4,win):
+    try:
+        num = e1.get()
+        if num != "":
+            q4.put(num)
+        else:
+            label = Label(win, text="Give a number")
+            label.grid()
+            label.after(1000, lambda: deleteL(label))
+    except:
+        pass
+def gui(queue1,queue2,queue3,queue4):
+    win = Tk()
+    sizex = 400
+    sizey = 400
+    posx = 100
+    posy = 100
+    win.wm_geometry("%dx%d+%d+%d" % (sizex, sizey, posx, posy))
+    win.title("client")
+    scrF = Frame(win)
+    scrF.grid(row=0, column=0,columnspan=3)
+    screen = Scrollable(scrF,width=25)
+    #yscroll = Scrollbar(screen, orient=VERTICAL)
+    #yscroll.pack(side=RIGHT,fill="y",expand = False)
+    #scrF = Canvas(screen, yscrollcommand=yscroll.set)
+    textBox = Entry()
+    sendButton = Button(win, text="Send", pady=10, command=lambda: send(queue1,queue2,textBox,sendButton))  # padx, pady
+    idBox = Entry()
+    idButton = Button(win,text="change id", command=lambda: changeId(idBox,queue4,win))
+    #screen.grid(row=0, column=0)
+    label1 = Label(win, text="Message")
+    label2 = Label(win, text="Id")
+    label1.grid(row=1,column=0)
+    label2.grid(row=2, column=0)
+    textBox.grid(row=1,column=1)
+    sendButton.grid(row=1,column=2)
+    win.after(0,lambda: texts(queue1,queue2,screen,win))
+    win.protocol("WM_DELETE_WINDOW", lambda: onClosing(queue3,win))
+    idBox.grid(row=2,column=1)
+    idButton.grid(row=2,column=2)
+    win.mainloop()
+def passCheck(win1,e2,lis,id,li,n):
+    y = li.index(id)
+    if lis[y][1] == e2.get():
+        n.idConf(id)
+        win1.destroy()
+    else:
+        label = Label(win1, text="wrong password")
+        label.grid()
+        label.after(1000, lambda: deleteL(label))
 
-        if pressed[pygame.K_RETURN]:
-            return string, True
-        elif pressed[pygame.K_RSHIFT] or pressed[pygame.K_LSHIFT]:
-            if pressed[pygame.K_1]:
-                string = string + "!"
-            elif pressed[pygame.K_2]:
-                string = string + "@"
-            elif pressed[pygame.K_3]:
-                string = string + "#"
-            elif pressed[pygame.K_4]:
-                string = string + "$"
-            elif pressed[pygame.K_5]:
-                string = string + "%"
-            elif pressed[pygame.K_6]:
-                string = string + "^"
-            elif pressed[pygame.K_7]:
-                string = string + "&"
-            elif pressed[pygame.K_8]:
-                string = string + "*"
-            elif pressed[pygame.K_9]:
-                string = string + "("
-            elif pressed[pygame.K_0]:
-                string = string + ")"
-            elif pressed[pygame.K_MINUS]:
-                string = string + "_"
-            elif pressed[pygame.K_EQUALS]:
-                string = string + "+"
-            elif pressed[pygame.K_LEFTBRACKET]:
-                string = string + "{"
-            elif pressed[pygame.K_BACKSLASH]:
-                string = string + "|"
-            elif pressed[pygame.K_RIGHTBRACKET]:
-                string = string + "}"
-            elif pressed[pygame.K_SEMICOLON]:
-                string = string + ":"
-            elif pressed[pygame.K_QUOTE]:
-                string = string + "\""
-            elif pressed[pygame.K_COMMA]:
-                string = string + "<"
-            elif pressed[pygame.K_PERIOD]:
-                string = string + ">"
-            elif pressed[pygame.K_SLASH]:
-                string = string + "?"
-        elif pressed[pygame.K_SPACE]:
-            string = string + " "
-        elif pressed[pygame.K_QUOTE]:
-            string = string + "\'"
-        elif pressed[pygame.K_COMMA]:
-            string = string + ","
-        elif pressed[pygame.K_MINUS]:
-            string = string + "-"
-        elif pressed[pygame.K_PERIOD]:
-            string = string + "."
-        elif pressed[pygame.K_SLASH]:
-            string = string + "/"
-        elif pressed[pygame.K_SEMICOLON]:
-            string = string + ";"
-        elif pressed[pygame.K_EQUALS]:
-            string = string + "="
-        elif pressed[pygame.K_LEFTBRACKET]:
-            string = string + "["
-        elif pressed[pygame.K_BACKSLASH]:
-            string = string + "\\"
-        elif pressed[pygame.K_RIGHTBRACKET]:
-            string = string + "]"
-        # elif pressed[pygame.K_BACKSPACE]:
-        #   string = string[:-1]
-        elif pressed[pygame.K_BACKQUOTE]:
-            string = string + "`"
-        elif pressed[pygame.K_a]:
-            string = string + "a"
-        elif pressed[pygame.K_b]:
-            string = string + "b"
-        elif pressed[pygame.K_c]:
-            string = string + "c"
-        elif pressed[pygame.K_d]:
-            string = string + "d"
-        elif pressed[pygame.K_e]:
-            string = string + "e"
-        elif pressed[pygame.K_f]:
-            string = string + "f"
-        elif pressed[pygame.K_g]:
-            string = string + "g"
-        elif pressed[pygame.K_h]:
-            string = string + "h"
-        elif pressed[pygame.K_i]:
-            string = string + "i"
-        elif pressed[pygame.K_j]:
-            string = string + "j"
-        elif pressed[pygame.K_k]:
-            string = string + "k"
-        elif pressed[pygame.K_l]:
-            string = string + "l"
-        elif pressed[pygame.K_m]:
-            string = string + "m"
-        elif pressed[pygame.K_n]:
-            string = string + "n"
-        elif pressed[pygame.K_o]:
-            string = string + "o"
-        elif pressed[pygame.K_p]:
-            string = string + "p"
-        elif pressed[pygame.K_q]:
-            string = string + "q"
-        elif pressed[pygame.K_r]:
-            string = string + "r"
-        elif pressed[pygame.K_s]:
-            string = string + "s"
-        elif pressed[pygame.K_t]:
-            string = string + "t"
-        elif pressed[pygame.K_u]:
-            string = string + "u"
-        elif pressed[pygame.K_v]:
-            string = string + "v"
-        elif pressed[pygame.K_w]:
-            string = string + "w"
-        elif pressed[pygame.K_x]:
-            string = string + "x"
-        elif pressed[pygame.K_y]:
-            string = string + "y"
-        elif pressed[pygame.K_z]:
-            string = string + "z"
-        elif pressed[pygame.K_0]:
-            string = string + "0"
-        elif pressed[pygame.K_1]:
-            string = string + "1"
-        elif pressed[pygame.K_2]:
-            string = string + "2"
-        elif pressed[pygame.K_3]:
-            string = string + "3"
-        elif pressed[pygame.K_4]:
-            string = string + "4"
-        elif pressed[pygame.K_5]:
-            string = string + "5"
-        elif pressed[pygame.K_6]:
-            string = string + "6"
-        elif pressed[pygame.K_7]:
-            string = string + "7"
-        elif pressed[pygame.K_8]:
-            string = string + "8"
-        elif pressed[pygame.K_9]:
-            string = string + "9"
-    return string, False
-
-
-def reDraw(win,string = None):
-    win.fill((255,255,255))
-    pygame.draw.rect(win, (128,128,128), (50,400,400,50))
-    pygame.draw.rect(win, (68, 68, 68), (450, 400, 50, 50))
-    if string != None:
-        font = pygame.font.SysFont("comicsans", 40)
-        name = font.render(string, True, (0, 0, 0))
-        win.blit(name, (50, 400))
-    pygame.display.update()
+def back(win1,l2,e2,b2,e1,n,b3):
+    e1.config(state=NORMAL)
+    l2.destroy()
+    e2.destroy()
+    b2.destroy()
+    b3.destroy()
+    b1 = Button(win1, text="Check/Save", command=lambda: idGetB(win1, e1, n, b1))
+    b1.grid(row=1, column=0, columnspan=2)
+def idGet(win,e1,n,b1):
+    try:
+        id = e1.get()
+        if id == "":
+            label = Label(win, text="Give id")
+            label.grid()
+            label.after(1000, lambda: deleteL(label))
+            return
+    except:
+        pass
+    l = n.idConfig()
+    li = []
+    for x in l:
+        li.append(x[0])
+    if id in li:
+        e1.config(state=DISABLED)
+        b1.grid_forget()
+        label2 = Label(win, text="Password")
+        entry2 = Entry(win)
+        button2 = Button(win, text="Check Password", command=lambda: passCheck(win, entry2,l,str(id),li,n))
+        button3 = Button(win, text="Back", command=lambda: back(win, label2, entry2, button2,e1,n,button3))
+        label2.grid(row=1, column=0)
+        entry2.grid(row=1, column=1)
+        button3.grid(row=2,column=0)
+        button2.grid(row=2, column=1)
+    else:
+        n.idConf(id)
+        e1.config(state=DISABLED)
+        b1.destroy()
+        l2 = Label(win, text="Password")
+        e2 = Entry()
+        b2 = Button(win, text="Save Password", command=lambda: passSet(win,e2,n))
+        l2.grid(column=0, row=1)
+        e2.grid(column=1, row=1)
+        b2.grid(row=2, column=0, columnspan=2)
+def idGetB(win,e1,n,b1):
+    n= Network()
+    idGet(win,e1,n,b1)
+def passSet(win1,e2,n):
+    c = n.getP()
+    c.password = e2.get()
+    win1.destroy()
+def deleteL(label):
+    label.destroy()
+def closed():
+    win1 = Tk()
+    win1.title("Select id")
+    l1 = Label(win1, text="ID")
+    e1 = Entry()
+    b1 = Button(win1, text="Check/Save", command=lambda: idGet(win1, e1, n, b1))
+    l1.grid(column=0, row=0)
+    e1.grid(column=1, row=0)
+    b1.grid(row=1, column=0, columnspan=2)
+    win1.mainloop()
 def main():
     run1 = True
-    n = Network()
-    c = n.getP()
-    clock = pygame.time.Clock()
+    closed()
+    try:
+        c = n.getP()
+    except:
+        return
+    c.change(c.id)
     print("id is",c.id)
-    notSent = ""
     write = False
-    send = False
-    while run1:
-        if c.id == 0:
-            c.change(1)
-        else:
-            c.change(0)
-        while True:
+    string = ""
+    p = multiprocessing.Process(target= gui,args=[queue1,queue2,queue3,queue4])
+    p.start()
+    his = c.history
+    for val in his:
+        queue1.put((val[0] + " by " + str(val[1]), 1))
+    while True:
+        if not (queue4.empty()):
+            numb = queue4.get()
+            c.change(str(numb))
+        if not(queue3.empty()):
+            run1 = False
+            u = queue3.get()
+            break
+        c = n.send(c)
+        val = c.receive()
+        if val != None:
+            queue1.put((val[0]+ " by "+str(val[1]),1))
+        l = []
+        while not queue2.empty():
+            string = queue2.get()
+            #print(string, "hey")
 
-            clock.tick(60)
+            if string[1] == 0:
+                if string[0] != "":
+                    #print(string[0])
+                    c.send(string[0])
+            elif string[1] != None:
+                l.append(string)
+        if queue2.empty():
+            queue2.put((None, None))
+        while len(l) > 0:
+            queue1.put(l[0])
+            del l[0]
 
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    run1 = False
-                    break
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    mouseX, mouseY = pygame.mouse.get_pos()
-                    if mouseX>= 50 and mouseX< 450 and mouseY >= 300 and mouseY <= 450:
-                        write = True
-                        prev = pygame.key.get_pressed()
-                        notSent,send = writeMessage(notSent,prev)
-                        if notSent == True:
-                            run1 = False
-                            break
-                        if send == True:
-                            mouseX = 450
-                    if mouseX>= 450 and mouseX<= 500 and mouseY >= 300 and mouseY <= 450:
-                        if notSent != "":
-                            write = False
-                            c.send(notSent)
-                            notSent = ""
-                    elif not(mouseX>= 50 and mouseX< 450 and mouseY >= 300 and mouseY <= 450):
-                        write= False
-                        c.send(None)
-            if write:
-                prev = pygame.key.get_pressed()
-                notSent, send = writeMessage(notSent, prev)
-
-            if send:
-                write = False
-                c.send(notSent)
-                notSent = ""
-            c = n.send(c)
-            val = c.receive()
-            if val != None:
-                print(val[0], " by ", val[1])
-            if notSent == "":
-                reDraw(win)
-            else:
-                reDraw(win,notSent)
-
-
-
-main()
+global n
+if __name__ == "__main__":
+    queue1 = multiprocessing.Queue()
+    queue2 = multiprocessing.Queue()
+    queue3 = multiprocessing.Queue()
+    queue4 = multiprocessing.Queue()
+    n = Network()
+    main()
