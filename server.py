@@ -22,9 +22,21 @@ print("Waiting for a connection, Server Started")
 users = {}
 idCount = 0
 
-def threaded_client(conn,userId):
-    global idCount
+def threaded_client(conn,y):
+    newlist = list()
+    for i in users.keys():
+        newlist.append(i)
+    nl = []
+    for i in newlist:
+        nl.append([i,users[i].password])
+    conn.send(pickle.dumps(nl))
+    userId= conn.recv(2048).decode()
+    try:
+        h = users[userId]
+    except:
+        users[userId] = User(userId)
     conn.send(pickle.dumps(users[userId]))
+
     reply = ""
     while True:
         try:
@@ -55,9 +67,8 @@ while True:
     conn, addr = s.accept()
     print("Connected to:", addr)
 
-    idCount += 1
-    userId = (idCount -1)
-    users[userId] = User(userId)
-    print("Connecting Client", idCount)
-
-    start_new_thread(threaded_client,(conn,userId))
+    #idCount += 1
+    #userId = (idCount -1)
+    #users[userId] = User(userId)
+    #print("Connecting Client", idCount)
+    start_new_thread(threaded_client,(conn,1))
