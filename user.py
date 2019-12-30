@@ -1,6 +1,7 @@
 class User:
     def __init__(self, id):
         self.id = id
+        self.password = None
         self.receiver = None
         self.received = (None,None)
         self.history = []
