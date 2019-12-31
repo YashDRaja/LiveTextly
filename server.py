@@ -18,10 +18,8 @@ except socket.error as e:
 s.listen() #NUMBER OF CONNECTIONS(PEOPLE)
 print("Waiting for a connection, Server Started")
 
-#connected  = set()
 users = {}
 idCount = 0
-
 def threaded_client(conn,y):
     newlist = list()
     for i in users.keys():
@@ -51,9 +49,15 @@ def threaded_client(conn,y):
             else:
 
                 if data.message[0] != None:
-                    #print(data.message)
                     message = data.message
-                    users[message[1]].received = (message[0],userId)
+                    try:
+                        h = users[message[1]]
+                        users[message[1]].received = (message[0], userId)
+                    except:
+                        users[message[1]] = User(message[1])
+                        users[message[1]].history.append((message[0], userId))
+
+
             u = copy.deepcopy(users[userId])
             users[userId].received = (None,None)
             conn.sendall(pickle.dumps(u))
@@ -66,9 +70,4 @@ def threaded_client(conn,y):
 while True:
     conn, addr = s.accept()
     print("Connected to:", addr)
-
-    #idCount += 1
-    #userId = (idCount -1)
-    #users[userId] = User(userId)
-    #print("Connecting Client", idCount)
     start_new_thread(threaded_client,(conn,1))
