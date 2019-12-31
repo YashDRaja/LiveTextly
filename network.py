@@ -8,7 +8,6 @@ class Network:
         self.server = "192.168.1.22"
         self.port = 5555
         self.addr= (self.server, self.port)
-        #self.p = self.connect()
         self.connected = False
     def getP(self):
         return self.p
