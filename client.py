@@ -11,7 +11,6 @@ def texts(queue1,queue2, scr,win):
     l = []
     while not queue1.empty():
         string = queue1.get()
-        #print(string, "here")
         if string[1] == 1:
             if string[0] != "":
                 label = Label(scr, text=string[0], justify=LEFT)
@@ -41,14 +40,15 @@ def changeId(e1,q4,win):
             labelMake(win,"Give an Id")
     except:
         pass
-def gui(queue1,queue2,queue3,queue4):
+def gui(queue1,queue2,queue3,queue4,idClient):
     win = Tk()
     sizex = 400
     sizey = 400
     posx = 100
     posy = 100
     win.wm_geometry("%dx%d+%d+%d" % (sizex, sizey, posx, posy))
-    win.title("client")
+    txts = "client " + str(idClient)
+    win.title(txts)
     scrF = Frame(win)
     scrF.grid(row=0, column=0,columnspan=3)
     screen = Scrollable(scrF,width=25)
@@ -123,7 +123,6 @@ def idGet(win,e1,n,b1):
 def idGetB(win,e1,b1):
     global n
     n = Network()
-    print("oof")
     idGet(win,e1,n,b1)
 def passSet(win1,e2,n):
     c = n.getP()
@@ -149,10 +148,9 @@ def main():
     except:
         return
     c.change(c.id)
-    print("id is",c.id)
     write = False
     string = ""
-    p = multiprocessing.Process(target= gui,args=[queue1,queue2,queue3,queue4])
+    p = multiprocessing.Process(target= gui,args=[queue1,queue2,queue3,queue4,c.id])
     p.start()
     his = c.history
     for val in his:
@@ -172,11 +170,8 @@ def main():
         l = []
         while not queue2.empty():
             string = queue2.get()
-            #print(string, "hey")
-
             if string[1] == 0:
                 if string[0] != "":
-                    #print(string[0])
                     c.send(string[0])
             elif string[1] != None:
                 l.append(string)
