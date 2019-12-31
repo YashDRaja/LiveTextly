@@ -12,13 +12,17 @@ class Scrollable(tk.Frame):
 
     def __init__(self, frame, width=16):
 
-        scrollbar = tk.Scrollbar(frame, width=width)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y, expand=False)
+        yscrollbar = tk.Scrollbar(frame, width=width-5)#Changed from stackoverflow
+        yscrollbar.pack(side=tk.RIGHT, fill=tk.Y, expand=False)#Changed from stackoverflow
 
-        self.canvas = tk.Canvas(frame, yscrollcommand=scrollbar.set)
+        xscrollbar = tk.Scrollbar(frame, width=width-5,orient=tk.HORIZONTAL)#Original Lines
+        xscrollbar.pack(side=tk.BOTTOM, fill=tk.X, expand=False)#Original Lines
+
+        self.canvas = tk.Canvas(frame, yscrollcommand=yscrollbar.set, xscrollcommand=xscrollbar.set)#Xscroll is original
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-        scrollbar.config(command=self.canvas.yview)
+        xscrollbar.config(command=self.canvas.xview)#Original
+        yscrollbar.config(command=self.canvas.yview)#Changed from stack overflow
 
         self.canvas.bind('<Configure>', self.__fill_canvas)
 
