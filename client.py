@@ -28,15 +28,17 @@ def texts(queue1,queue2, scr,win):
 def onClosing(q3,win1):
     q3.put("queue")
     win1.destroy()
+def labelMake(win,txt):
+    label = Label(win, text=txt)
+    label.grid()
+    label.after(1000, lambda: deleteL(label))
 def changeId(e1,q4,win):
     try:
         num = e1.get()
         if num != "":
             q4.put(num)
         else:
-            label = Label(win, text="Give a number")
-            label.grid()
-            label.after(1000, lambda: deleteL(label))
+            labelMake(win,"Give an Id")
     except:
         pass
 def gui(queue1,queue2,queue3,queue4):
@@ -56,14 +58,14 @@ def gui(queue1,queue2,queue3,queue4):
     idButton = Button(win,text="change id", command=lambda: changeId(idBox,queue4,win))
     label1 = Label(win, text="Message")
     label2 = Label(win, text="Id")
-    label1.grid(row=1,column=0)
-    label2.grid(row=2, column=0)
-    textBox.grid(row=1,column=1)
-    sendButton.grid(row=1,column=2)
+    label1.grid(row=2,column=0)
+    label2.grid(row=3, column=0)
+    textBox.grid(row=2,column=1)
+    sendButton.grid(row=2,column=2)
     win.after(0,lambda: texts(queue1,queue2,screen,win))
     win.protocol("WM_DELETE_WINDOW", lambda: onClosing(queue3,win))
-    idBox.grid(row=2,column=1)
-    idButton.grid(row=2,column=2)
+    idBox.grid(row=3,column=1)
+    idButton.grid(row=3,column=2)
     win.mainloop()
 def passCheck(win1,e2,lis,id,li,n):
     y = li.index(id)
@@ -71,9 +73,7 @@ def passCheck(win1,e2,lis,id,li,n):
         n.idConf(id)
         win1.destroy()
     else:
-        label = Label(win1, text="wrong password")
-        label.grid()
-        label.after(1000, lambda: deleteL(label))
+        labelMake(win1, "Wrong Passwod")
 
 def back(win1,l2,e2,b2,e1,n,b3):
     e1.config(state=NORMAL)
@@ -81,20 +81,22 @@ def back(win1,l2,e2,b2,e1,n,b3):
     e2.destroy()
     b2.destroy()
     b3.destroy()
-    b1 = Button(win1, text="Check/Save", command=lambda: idGetB(win1, e1, n, b1))
+    b1 = Button(win1, text="Check/Save", command=lambda: idGetB(win1, e1, b1))
     b1.grid(row=1, column=0, columnspan=2)
 def idGet(win,e1,n,b1):
     try:
         id = e1.get()
         if id == "":
-            label = Label(win, text="Give id")
-            label.grid()
-            label.after(1000, lambda: deleteL(label))
+            labelMake(win, "Give id")
             return
     except:
         pass
-    l = n.idConfig()
+    l2 = n.idConfig()
     li = []
+    l = []
+    for y in l2:
+        if y[1] != None:
+            l.append(y)
     for x in l:
         li.append(x[0])
     if id in li:
@@ -118,8 +120,10 @@ def idGet(win,e1,n,b1):
         l2.grid(column=0, row=1)
         e2.grid(column=1, row=1)
         b2.grid(row=2, column=0, columnspan=2)
-def idGetB(win,e1,n,b1):
-    n= Network()
+def idGetB(win,e1,b1):
+    global n
+    n = Network()
+    print("oof")
     idGet(win,e1,n,b1)
 def passSet(win1,e2,n):
     c = n.getP()
