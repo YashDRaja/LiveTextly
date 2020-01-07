@@ -11,7 +11,7 @@ class Network:
         self.connected = False
     def getP(self):
         return self.p
-    def idConfig(self):
+    def id_config(self): #Returns server's version of id
         try:
             if self.connected == False:
                 self.client.connect(self.addr)
@@ -19,7 +19,7 @@ class Network:
             return pickle.loads(self.client.recv(2048))
         except:
             pass
-    def idConf(self,data):
+    def id_conf(self,data): #Communicates what id the user is trying to access
         self.client.send(str.encode(str(data)))
         self.p = self.connect()
     def connect(self):
